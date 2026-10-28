@@ -1,54 +1,65 @@
 # Baritone Ukulele Tuner
 
-<!-- One or two sentences: what is it and who is it for? -->
-A reference-tone tuner for baritone ukulele (D-G-B-E) with visuals that respond to each note.
+A reference-tone tuner for baritone ukulele (D-G-B-E) with psychedelic visuals that respond to each note.
 
-**Live link:** <!-- add your GitHub Pages link here once it's set up, or delete this line -->
+**Live link:** https://1indes.github.io/baritone-ukulele-tuner/
 
-![Screenshot](screenshot.png)
-<!-- Take a screenshot of the working page, save it as screenshot.png in this folder -->
+![Screenshot of the tuner with ripples spreading from a tuning peg](screenshot.png)
 
 ## The idea
 
-<!-- Why did you make this? E.g. many tuners are built for standard ukulele tuning, and I play baritone. -->
+I play a baritone ukulele, and many tuners are built around standard ukulele tuning. I wanted a tuner made for baritone, showing its four strings (D, G, B, E) in the layout of a real headstock. I also wanted it to look good to use, so I gave it a 1960s psychedelic style where each string has its own colour and the visuals change with the pitch.
 
 ## Who it's for
 
-<!-- E.g. baritone ukulele players who tune by ear and want a clear reference for each string. -->
+Baritone ukulele players who tune by ear and want a clear reference tone for each string.
 
 ## How to use it
 
-1. Click a circle, or press 1-4 (or the letters D, G, B, E), to hear that string's note.
-2. Tune your ukulele string until it sounds the same as the note.
+1. Click a tuning peg or a string, or press 1-4 (or the letters D, G, B, E), to hear that string's note.
+2. Turn your real tuning peg until your string sounds the same as the note.
 3. Click "Stop and clear" to silence the sound and clear the ripples.
 
-<!-- Explain what the visuals mean: lower notes make thick, slow ripples; higher notes make thin, fast ones. -->
+What the visuals mean:
+- Each string has its own colour, and the status line takes the colour of the string you played.
+- The string wobbles and fades like a plucked string, and the tuning peg spins while the note rings.
+- Ripples spread out from the peg. Higher notes make more waves in each ripple, and the ripples start as circles and become wavier as they grow.
+
+The notes are D3 (146.83 Hz), G3 (196.00 Hz), B3 (246.94 Hz) and E4 (329.63 Hz).
+
+## How the main interaction works
+
+A click or key press calls `playString(i)`. It creates a Web Audio oscillator at that string's frequency with a 3-second fade, and marks the string as "ringing". Every frame, the drawing code checks which strings are ringing. For each one it wobbles the string, spins the peg, and sends out ripples at a rate and with a wave count set by that string's entry in the `STRINGS` list. So the user's action sets both the sound and the visuals, and feedback appears immediately.
 
 ## How to run it
 
-No installs or dependencies. Either:
+There are no dependencies and nothing to install. Either:
 
-- Open `index.html` in a browser, or
-- In VS Code, right-click `index.html` and choose "Open with Live Server", or
-- Run `python3 -m http.server` in this folder and go to `http://localhost:8000`.
+- open the live link above, or
+- download or clone the repo and double-click `index.html` to open it in a browser, or
+- in VS Code, right-click `index.html` and choose "Open with Live Server" (if you have that extension).
 
-<!-- Add which browsers you tested in. -->
+The page loads two fonts from Google Fonts, so it needs an internet connection to look as intended. Offline, it falls back to Georgia.
+
+Tested in: Chrome on a MacBook
 
 ## What happens when something goes wrong
 
-<!-- List the mistakes you handle. Delete any you don't actually handle. -->
-- Browsers block sound until the first click, so audio only starts after the user clicks or presses a key.
-- Clicking empty space shows a message telling the user to click a circle.
-- Clicking a string repeatedly restarts the note instead of stacking sounds.
-- If the browser can't play sound, a message says so.
+- Browsers block sound until the user interacts with the page, so audio only starts after the first click or key press.
+- Clicking empty space shows a message telling the user to click a peg or string.
+- Clicking a string repeatedly restarts its note cleanly instead of stacking sounds.
+- If the browser can't play Web Audio, the status line says so.
+- "Stop and clear" silences everything and resets the display.
 
 ## Known limitations
 
-<!-- Be honest. E.g. it plays reference tones only and doesn't listen to the microphone, so it can't tell you how far off your string is. -->
+- It plays reference tones only. It doesn't listen through the microphone, so it can't tell you how far off your string is.
+- The sound is a simple synthesised tone, not a recording of a real ukulele.
+- The layout is vertical, so it uses space differently on a laptop than on a phone. TODO: say whether you tested it on a phone.
+- The headstock shows two pegs per side, which is common on baritones but not on every model.
 
 ## Credits
 
-<!-- Credit everything you didn't write yourself. -->
-- Initial version of the code was written with help from Claude (Anthropic). See PROCESS.md.
+- The first version of the code, and help with later changes, came from Claude (Anthropic). See PROCESS.md for what I used it for and what I changed.
+- Fonts: Shrikhand and Fredoka, from Google Fonts (open licences).
 - Note frequencies: standard equal-temperament values for D3, G3, B3 and E4.
-- <!-- Course examples, tutorials, fonts, anything else -->
