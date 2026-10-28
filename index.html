@@ -67,10 +67,10 @@ text-shadow: 3px 3px 0 #1b0638, 6px 6px 0 #ff3d81, 9px 9px 0 #2ee6c5, 12px 12px 
 // ---- The four strings of a baritone ukulele (lowest to highest) ----
 // lobes = how many waves the ripple has. Higher note = more waves.
 const STRINGS = [
-  { name: "D", label: "4th string, D3", freq: 146.83, color: "#ff9f1c", key: "1", lobes: 6, speed: 90 },
-  { name: "G", label: "3rd string, G3", freq: 196.00, color: "#ff3d81", key: "2", lobes: 7, speed: 105 },
-  { name: "B", label: "2nd string, B3", freq: 246.94, color: "#2ee6c5", key: "3", lobes: 8, speed: 120 },
-  { name: "E", label: "1st string, E4", freq: 329.63, color: "#c8ff3d", key: "4", lobes: 9, speed: 135 },
+  { name: "D", label: "4th string, D3", freq: 146.83, color: "#ff9f1c", key: "1", lobes: 6, speed: 75 },
+  { name: "G", label: "3rd string, G3", freq: 196.00, color: "#ff3d81", key: "2", lobes: 7, speed: 90 },
+  { name: "B", label: "2nd string, B3", freq: 246.94, color: "#2ee6c5", key: "3", lobes: 8, speed: 105 },
+  { name: "E", label: "1st string, E4", freq: 329.63, color: "#c8ff3d", key: "4", lobes: 9, speed: 120 },
 ];
 const CREAM = "#fff4d6";
 const NOTE_SECONDS = 3;
@@ -213,10 +213,12 @@ function spawnRipple(i, g) {
 
 // A ring that starts as a circle and gets wavier as it ages
 function wavyRing(rp, time) {
-  const grow = Math.sqrt(1 - rp.alpha / 0.9);   // wavy sooner: rises quickly, then levels off
+  const t = 1 - rp.alpha / 0.9;          // 0 when new, towards 1 as it ages
+  const s = Math.min(1, t * 3);          // reaches full wobble after about 0.4 seconds
+  const grow = s * s * (3 - 2 * s);      // eases in smoothly, so no sudden jump
   const amp = Math.min(rp.r * 0.12, 16) * grow;
   ctx.beginPath();
-  for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.1) {
+  for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.04) {
     const rr = rp.r + amp * Math.sin(rp.lobes * a + rp.phase + time * 2);
     const x = rp.x + rr * Math.cos(a), y = rp.y + rr * Math.sin(a);
     if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -239,7 +241,7 @@ function frame(now) {
     spin[i] += dt * 6;   // the peg turns while the note rings
     if (now >= a.next) {
       spawnRipple(i, g);
-      a.next += 700 * (STRINGS[0].freq / STRINGS[i].freq);
+    a.next += 700 * Math.sqrt(STRINGS[0].freq / STRINGS[i].freq);
     }
   }
 
