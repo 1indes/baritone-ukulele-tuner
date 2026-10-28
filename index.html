@@ -205,7 +205,7 @@ document.getElementById("stop").addEventListener("click", stopAll);
 // ---- Visuals ----
 function spawnRipple(i, g) {
   const p = pegPos(i, g), s = STRINGS[i];
-  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes * 3,   // lots of waves at first
+  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes
                  speed: s.freq * 0.9,      // higher note = faster
                  width: 9 - i * 2,         // higher note = thinner
                  alpha: 0.9, phase: Math.random() * 6 });
@@ -213,8 +213,8 @@ function spawnRipple(i, g) {
 
 // A ring whose edge wobbles in and out, like a flower
 function wavyRing(rp, time) {
-    const smooth = rp.alpha / 0.9;   // 1 when the ripple is new, near 0 as it fades
-  const amp = Math.min(rp.r * 0.25, 18) * smooth;
+    const grow = 1 - rp.alpha / 0.9;   // 0 when the ripple is new, near 1 as it ages
+  const amp = Math.min(rp.r * 0.12, 16) * grow;
   ctx.beginPath();
   for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.1) {
     const rr = rp.r + amp * Math.sin(rp.lobes * a + rp.phase + time * 2);
