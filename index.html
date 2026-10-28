@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baritone Ukulele Tuner</title>
 <!-- Groovy 60s font from Google Fonts. Needs internet; falls back to Georgia if offline. -->
-<link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500&family=Shrikhand&display=swap" rel="stylesheet">
 <style>
   :root {
     --text: #fff4d6;
@@ -37,17 +37,17 @@
     color: #ff9f1c;
 text-shadow: 3px 3px 0 #1b0638, 6px 6px 0 #ff3d81, 9px 9px 0 #2ee6c5, 12px 12px 0 #c8ff3d;
   }
-  #status { margin: 0.8rem 0 0; color: var(--muted); min-height: 1.4em; }
+    #status { margin: 0.8rem 0 0; color: var(--muted); min-height: 2.8em; font-family: Fredoka, Georgia, serif; font-size: 1.1rem; text-shadow: 1px 1px 0 #1b0638; }
   canvas { flex: 1; width: 100%; display: block; touch-action: manipulation; }
   footer { padding: 0 1.5rem 1.2rem; display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
   button {
     font-family: Shrikhand, Georgia, serif; font-size: 1rem;
-    color: #1b0638; background: #ffe14d;
+    color: #1b0638; background: #fff4d6;
     border: 3px solid var(--text); border-radius: 30px; padding: 0.4rem 1.2rem; cursor: pointer;
   }
   button:hover { background: #2ee6c5; }
   button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
-  footer span { color: var(--muted); font-size: 0.9rem; }
+  footer span { font-family: Fredoka, Georgia, serif; color: #fff4d6; font-size: 0.95rem; text-shadow: 1px 1px 0 #1b0638; }
 </style>
 </head>
 <body>
@@ -172,6 +172,7 @@ function playString(i) {
   const now = performance.now();
   active[i] = { start: now, until: now + NOTE_SECONDS * 1000, next: now };
   statusEl.textContent = `Playing ${s.name} (${s.label}, ${s.freq} Hz). Turn your peg until your string sounds the same.`;
+  statusEl.style.color = s.color;
 }
 
 function stopAll() {
@@ -179,6 +180,7 @@ function stopAll() {
   active.fill(null);
   ripples = [];
   statusEl.textContent = "Stopped. Click a tuning peg or a string, or press 1–4.";
+  statusEl.style.color = "";
 }
 
 // ---- Input ----
@@ -203,7 +205,7 @@ document.getElementById("stop").addEventListener("click", stopAll);
 // ---- Visuals ----
 function spawnRipple(i, g) {
   const p = pegPos(i, g), s = STRINGS[i];
-  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes,
+  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes * 3,   // lots of waves at first
                  speed: s.freq * 0.9,      // higher note = faster
                  width: 9 - i * 2,         // higher note = thinner
                  alpha: 0.9, phase: Math.random() * 6 });
@@ -211,7 +213,8 @@ function spawnRipple(i, g) {
 
 // A ring whose edge wobbles in and out, like a flower
 function wavyRing(rp, time) {
-  const amp = Math.min(rp.r * 0.08, 14);
+    const smooth = rp.alpha / 0.9;   // 1 when the ripple is new, near 0 as it fades
+  const amp = Math.min(rp.r * 0.25, 18) * smooth;
   ctx.beginPath();
   for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.1) {
     const rr = rp.r + amp * Math.sin(rp.lobes * a + rp.phase + time * 2);
