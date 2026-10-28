@@ -67,10 +67,10 @@ text-shadow: 3px 3px 0 #1b0638, 6px 6px 0 #ff3d81, 9px 9px 0 #2ee6c5, 12px 12px 
 // ---- The four strings of a baritone ukulele (lowest to highest) ----
 // lobes = how many waves the ripple has. Higher note = more waves.
 const STRINGS = [
-  { name: "D", label: "4th string, D3", freq: 146.83, color: "#ff9f1c", key: "1", lobes: 3 },
-  { name: "G", label: "3rd string, G3", freq: 196.00, color: "#ff3d81", key: "2", lobes: 4 },
-  { name: "B", label: "2nd string, B3", freq: 246.94, color: "#2ee6c5", key: "3", lobes: 5 },
-  { name: "E", label: "1st string, E4", freq: 329.63, color: "#c8ff3d", key: "4", lobes: 6 },
+  { name: "D", label: "4th string, D3", freq: 146.83, color: "#ff9f1c", key: "1", lobes: 3, speed: 130 },
+  { name: "G", label: "3rd string, G3", freq: 196.00, color: "#ff3d81", key: "2", lobes: 4, speed: 175 },
+  { name: "B", label: "2nd string, B3", freq: 246.94, color: "#2ee6c5", key: "3", lobes: 5, speed: 195 },
+  { name: "E", label: "1st string, E4", freq: 329.63, color: "#c8ff3d", key: "4", lobes: 6, speed: 215 },
 ];
 const CREAM = "#fff4d6";
 const NOTE_SECONDS = 3;
@@ -205,15 +205,15 @@ document.getElementById("stop").addEventListener("click", stopAll);
 // ---- Visuals ----
 function spawnRipple(i, g) {
   const p = pegPos(i, g), s = STRINGS[i];
-  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes
-                 speed: s.freq * 0.9,      // higher note = faster
+  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes,
+                 speed: s.speed,      // set per string in the STRINGS list
                  width: 9 - i * 2,         // higher note = thinner
                  alpha: 0.9, phase: Math.random() * 6 });
 }
 
-// A ring whose edge wobbles in and out, like a flower
+// A ring that starts as a circle and gets wavier as it ages
 function wavyRing(rp, time) {
-    const grow = 1 - rp.alpha / 0.9;   // 0 when the ripple is new, near 1 as it ages
+  const grow = Math.sqrt(1 - rp.alpha / 0.9);   // wavy sooner: rises quickly, then levels off
   const amp = Math.min(rp.r * 0.12, 16) * grow;
   ctx.beginPath();
   for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.1) {
