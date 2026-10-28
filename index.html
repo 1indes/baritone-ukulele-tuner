@@ -43,4 +43,290 @@
   button {
     font-family: Shrikhand, Georgia, serif; font-size: 1rem;
     color: #1b0638; background: #ffe14d;
-    border: 3px solid var(--text); border-radius: 30px; padding: 0.4rem 1.2rem; cursor:
+    border: 3px solid var(--text); border-radius: 30px; padding: 0.4rem 1.2rem; cursor: pointer;
+  }
+  button:hover { background: #2ee6c5; }
+  button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  footer span { color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Baritone Ukulele Tuner</h1>
+    <p id="status">Click a tuning peg or a string, or press 1–4, to hear it.</p>
+  </header>
+
+  <canvas id="stage" aria-label="A ukulele headstock with four tuning pegs and four strings"></canvas>
+
+  <footer>
+    <button id="stop">Stop and clear</button>
+    <span>Keys: 1 D, 2 G, 3 B, 4 E (or press the letter)</span>
+  </footer>
+
+<script>
+// ---- The four strings of a baritone ukulele (lowest to highest) ----
+// lobes = how many waves the ripple has. Higher note = more waves.
+const STRINGS = [
+  { name: "D", label: "4th string, D3", freq: 146.83, color: "#ff9f1c", key: "1", lobes: 3 },
+  { name: "G", label: "3rd string, G3", freq: 196.00, color: "#ff3d81", key: "2", lobes: 4 },
+  { name: "B", label: "2nd string, B3", freq: 246.94, color: "#2ee6c5", key: "3", lobes: 5 },
+  { name: "E", label: "1st string, E4", freq: 329.63, color: "#c8ff3d", key: "4", lobes: 6 },
+];
+const CREAM = "#fff4d6";
+const NOTE_SECONDS = 3;
+
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const statusEl = document.getElementById("status");
+
+let audio = null;                          // created on first click (browsers block sound before that)
+const voices = new Array(4).fill(null);    // the sound currently playing for each string
+const active = new Array(4).fill(null);    // { start, until, next } while a string is ringing
+const spin = new Array(4).fill(0);         // how far each tuning peg has turned
+let ripples = [];
+
+function layout() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", layout);
+layout();
+
+// ---- Where everything sits on the screen ----
+function geometry() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const neckW = Math.min(w * 0.5, 340);
+  const hh = Math.min(h * 0.3, 190);
+  return { w, h, cx: w / 2, neckW, hw: neckW * 1.15, hy: 20, hh, nutY: 20 + hh, bottomY: h - 20,
+           sp: neckW * 0.27, pegR: Math.min(24, w * 0.055) };
+}
+// Each string winds round a post inside the headstock; its knob sits outside the edge.
+// D and G are on the left, B and E on the right. The outer strings (D and E) use the
+// pegs nearest the nut, so the strings never cross each other.
+const PEG_HEIGHT = [0.6, 0.2, 0.2, 0.6];   // 0 = top of headstock, 1 = the nut
+function postPos(i, g) {
+  const side = i < 2 ? -1 : 1;
+  return { x: g.cx + side * (g.hw / 2 - 12), y: g.hy + g.hh * PEG_HEIGHT[i] };
+}
+function pegPos(i, g) {
+  const side = i < 2 ? -1 : 1;
+  return { x: g.cx + side * (g.hw / 2 + g.pegR + 8), y: g.hy + g.hh * PEG_HEIGHT[i] };
+}
+function stringX(i, g) { return g.cx + (i - 1.5) * g.sp; }
+
+// Which string did the mouse land on? Returns 0-3, or -1 for nothing.
+function hitTest(mx, my) {
+  const g = geometry();
+  for (let i = 0; i < 4; i++) {
+    const p = pegPos(i, g);
+    if (Math.hypot(mx - p.x, my - p.y) <= g.pegR * 1.2) return i;
+    if (Math.abs(mx - stringX(i, g)) <= 16 && my >= g.nutY && my <= g.bottomY) return i;
+  }
+  return -1;
+}
+
+// ---- Sound ----
+function ensureAudio() {
+  if (audio) return true;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) {
+    statusEl.textContent = "This browser can't play sound. Try a current Chrome, Firefox or Safari.";
+    return false;
+  }
+  audio = new AC();
+  return true;
+}
+
+function stopVoice(i) {
+  const v = voices[i];
+  if (!v) return;
+  const t = audio.currentTime;
+  v.gain.gain.cancelScheduledValues(t);
+  v.gain.gain.setValueAtTime(v.gain.gain.value, t);
+  v.gain.gain.linearRampToValueAtTime(0, t + 0.05);   // short fade avoids a click
+  v.osc.stop(t + 0.06);
+  voices[i] = null;
+}
+
+function playString(i) {
+  if (!ensureAudio()) return;
+  if (audio.state === "suspended") audio.resume();
+  stopVoice(i);   // repeated clicks restart the note cleanly instead of stacking
+
+  const s = STRINGS[i];
+  const t = audio.currentTime;
+  const osc = audio.createOscillator();
+  const gain = audio.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = s.freq;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.4, t + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + NOTE_SECONDS);
+  osc.connect(gain).connect(audio.destination);
+  osc.start(t);
+  osc.stop(t + NOTE_SECONDS + 0.1);
+  voices[i] = { osc, gain };
+
+  const now = performance.now();
+  active[i] = { start: now, until: now + NOTE_SECONDS * 1000, next: now };
+  statusEl.textContent = `Playing ${s.name} (${s.label}, ${s.freq} Hz). Turn your peg until your string sounds the same.`;
+}
+
+function stopAll() {
+  if (audio) for (let i = 0; i < 4; i++) stopVoice(i);
+  active.fill(null);
+  ripples = [];
+  statusEl.textContent = "Stopped. Click a tuning peg or a string, or press 1–4.";
+}
+
+// ---- Input ----
+canvas.addEventListener("pointerdown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const i = hitTest(e.clientX - rect.left, e.clientY - rect.top);
+  if (i >= 0) playString(i);
+  else statusEl.textContent = "Click directly on a tuning peg or a string to play it.";
+});
+canvas.addEventListener("pointermove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  canvas.style.cursor = hitTest(e.clientX - rect.left, e.clientY - rect.top) >= 0 ? "pointer" : "default";
+});
+window.addEventListener("keydown", (e) => {
+  if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const i = STRINGS.findIndex((s) => s.key === k || s.name.toLowerCase() === k);
+  if (i >= 0) playString(i);
+});
+document.getElementById("stop").addEventListener("click", stopAll);
+
+// ---- Visuals ----
+function spawnRipple(i, g) {
+  const p = pegPos(i, g), s = STRINGS[i];
+  ripples.push({ x: p.x, y: p.y, r: g.pegR, color: s.color, lobes: s.lobes,
+                 speed: s.freq * 0.9,      // higher note = faster
+                 width: 9 - i * 2,         // higher note = thinner
+                 alpha: 0.9, phase: Math.random() * 6 });
+}
+
+// A ring whose edge wobbles in and out, like a flower
+function wavyRing(rp, time) {
+  const amp = Math.min(rp.r * 0.08, 14);
+  ctx.beginPath();
+  for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.1) {
+    const rr = rp.r + amp * Math.sin(rp.lobes * a + rp.phase + time * 2);
+    const x = rp.x + rr * Math.cos(a), y = rp.y + rr * Math.sin(a);
+    if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = (now - last) / 1000;
+  last = now;
+  const g = geometry();
+  ctx.clearRect(0, 0, g.w, g.h);
+
+  // Ringing strings emit ripples at a rate set by their pitch
+  for (let i = 0; i < 4; i++) {
+    const a = active[i];
+    if (!a) continue;
+    if (now >= a.until) { active[i] = null; continue; }
+    spin[i] += dt * 6;   // the peg turns while the note rings
+    if (now >= a.next) {
+      spawnRipple(i, g);
+      a.next += 700 * (STRINGS[0].freq / STRINGS[i].freq);
+    }
+  }
+
+  // Ripples: a wavy coloured ring plus a thin cream ring inside it
+  ripples = ripples.filter((rp) => rp.alpha > 0.01);
+  for (const rp of ripples) {
+    rp.r += rp.speed * dt;
+    rp.alpha *= Math.pow(0.35, dt);
+    ctx.globalAlpha = rp.alpha;
+    wavyRing(rp, now / 1000);
+    ctx.strokeStyle = rp.color; ctx.lineWidth = rp.width; ctx.stroke();
+    wavyRing({ ...rp, r: rp.r * 0.8 }, now / 1000);
+    ctx.strokeStyle = CREAM; ctx.lineWidth = 2; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Headstock and neck
+  ctx.fillStyle = "#1a0634"; ctx.strokeStyle = CREAM; ctx.lineWidth = 3;
+  const L = g.cx - g.hw / 2, R = g.cx + g.hw / 2, flareY = g.nutY - g.hh * 0.3, c = 22;
+  ctx.beginPath();
+  ctx.moveTo(g.cx - g.neckW / 2, g.nutY);          // start at the nut, left side
+  ctx.lineTo(L, flareY);                           // widen out to the headstock
+  ctx.lineTo(L, g.hy + c);
+  ctx.quadraticCurveTo(L, g.hy, L + c, g.hy);      // rounded top-left corner
+  ctx.lineTo(R - c, g.hy);
+  ctx.quadraticCurveTo(R, g.hy, R, g.hy + c);      // rounded top-right corner
+  ctx.lineTo(R, flareY);
+  ctx.lineTo(g.cx + g.neckW / 2, g.nutY);          // back in to the nut, right side
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillRect(g.cx - g.neckW / 2, g.nutY, g.neckW, g.bottomY - g.nutY);
+  ctx.strokeRect(g.cx - g.neckW / 2, g.nutY, g.neckW, g.bottomY - g.nutY);
+  ctx.lineWidth = 6;                      // the nut, where strings leave the headstock
+  ctx.beginPath(); ctx.moveTo(g.cx - g.neckW / 2, g.nutY); ctx.lineTo(g.cx + g.neckW / 2, g.nutY); ctx.stroke();
+  const len = g.bottomY - g.nutY;
+  ctx.lineWidth = 1.5; ctx.globalAlpha = 0.5;
+  for (let k = 1; k <= 5; k++) {          // frets
+    const y = g.nutY + len * (k / 6);
+    ctx.beginPath(); ctx.moveTo(g.cx - g.neckW / 2, y); ctx.lineTo(g.cx + g.neckW / 2, y); ctx.stroke();
+  }
+  ctx.fillStyle = CREAM;
+  for (const k of [2.5, 4.5]) {           // dot markers between frets
+    ctx.beginPath(); ctx.arc(g.cx, g.nutY + len * (k / 6), 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Strings: a line from each post to the nut, then down the neck (wobbling when ringing)
+  for (let i = 0; i < 4; i++) {
+    const s = STRINGS[i], p = postPos(i, g), sx = stringX(i, g), a = active[i];
+    let amp = 0, phase = 0;
+    if (a) {
+      const fade = Math.max(0, 1 - (now - a.start) / (NOTE_SECONDS * 1000));
+      amp = 14 * fade * fade;
+      phase = (now / 1000) * (s.freq / 20) * Math.PI * 2;
+    }
+    ctx.strokeStyle = s.color; ctx.lineWidth = 4 - i * 0.6; ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y); ctx.lineTo(sx, g.nutY);
+    for (let y = g.nutY; y <= g.bottomY; y += 6) {
+      const t = (y - g.nutY) / len;
+      ctx.lineTo(sx + amp * Math.sin(Math.PI * t) * Math.sin(phase), y);
+    }
+    ctx.stroke();
+  }
+
+  // Tuning pegs on top, with a spoke that spins while the note rings
+  for (let i = 0; i < 4; i++) {
+    const s = STRINGS[i], p = pegPos(i, g), q = postPos(i, g), ringing = active[i] !== null;
+    ctx.strokeStyle = CREAM; ctx.lineWidth = 6;    // the stem linking post and knob
+    ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+    ctx.fillStyle = CREAM;                         // the post the string winds around
+    ctx.beginPath(); ctx.arc(q.x, q.y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, g.pegR * (ringing ? 1.1 : 1), 0, Math.PI * 2);
+    ctx.fillStyle = s.color; ctx.fill();
+    ctx.strokeStyle = CREAM; ctx.lineWidth = 4; ctx.stroke();
+    ctx.strokeStyle = "#1a0634"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + Math.cos(spin[i]) * g.pegR * 0.85, p.y + Math.sin(spin[i]) * g.pegR * 0.85);
+    ctx.stroke();
+    ctx.fillStyle = "#1a0634";
+    ctx.font = `${Math.round(g.pegR * 0.9)}px Shrikhand, Georgia, serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.beginPath(); ctx.arc(p.x, p.y, g.pegR * 0.65, 0, Math.PI * 2); ctx.fillStyle = CREAM; ctx.fill();
+    ctx.fillStyle = "#1a0634";
+    ctx.fillText(s.name, p.x, p.y + 2);
+  }
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
