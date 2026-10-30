@@ -38,7 +38,9 @@
 text-shadow: 3px 3px 0 #1b0638, 6px 6px 0 #ff3d81, 9px 9px 0 #2ee6c5, 12px 12px 0 #c8ff3d;
   }
     #status { margin: 0.8rem 0 0; color: var(--muted); min-height: 2.8em; font-family: Fredoka, Georgia, serif; font-size: 1.1rem; text-shadow: 1px 1px 0 #1b0638; }
-  canvas { flex: 1; width: 100%; display: block; touch-action: manipulation; }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; }
+  header, footer { position: relative; z-index: 1; }   /* keep the text and button above the canvas */
+  footer { margin-top: auto; }                         /* keep the footer at the bottom */
   footer { padding: 0 1.5rem 1.2rem; display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap; }
   button {
     font-family: Shrikhand, Georgia, serif; font-size: 1rem;
@@ -97,9 +99,13 @@ layout();
 // ---- Where everything sits on the screen ----
 function geometry() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
+  // The canvas now covers the whole window, so find where the title ends and the footer begins
+  const top = document.querySelector("header").getBoundingClientRect().bottom;
+  const bottom = h - document.querySelector("footer").getBoundingClientRect().top;
+  const avail = h - top - bottom;
   const neckW = Math.min(w * 0.5, 340);
-  const hh = Math.min(h * 0.3, 190);
-  return { w, h, cx: w / 2, neckW, hw: neckW * 1.15, hy: 20, hh, nutY: 20 + hh, bottomY: h - 20,
+  const hh = Math.min(avail * 0.3, 190);
+  return { w, h, cx: w / 2, neckW, hw: neckW * 1.15, hy: top + 20, hh, nutY: top + 20 + hh, bottomY: h - bottom - 20,
            sp: neckW * 0.27, pegR: Math.min(24, w * 0.055) };
 }
 // Each string winds round a post inside the headstock; its knob sits outside the edge.
