@@ -24,8 +24,7 @@ My own tweaks, made by editing the code myself:
 
 ## User trial
 
-TODO: fill this in after the trial. Don't invent anything.
-
+**What I changed:** The tester triggered a lot of ripples at once and I noticed they seemed to disappear behind an invisible rectangle at the top, level with the pegs and text. The drawing area only covered the space below the title, so ripples were cut off at its edge. I changed the canvas to cover the whole window, put the title and button on top of it, and made the head's position depend on where the title ends. The ripples now spread across the whole page.
 **Who and how:** TODO (for example, a friend who doesn't play ukulele. I gave no instructions and watched. Which device?)
 
 **What I observed:** TODO (what did they click first? Where did they hesitate? Did the sound and visuals make sense to them? Did they understand the pegs and strings were clickable?)
