@@ -29,7 +29,7 @@ The notes are D3 (146.83 Hz), G3 (196.00 Hz), B3 (246.94 Hz) and E4 (329.63 Hz).
 
 ## How the main interaction works
 
-A click or key press calls `playString(i)`. It creates a Web Audio oscillator at that string's frequency with a 3-second fade, and marks the string as "ringing". Every frame, the drawing code checks which strings are ringing. For each one it wobbles the string, spins the peg, and sends out ripples at a rate and with a wave count set by that string's entry in the `STRINGS` list. So the user's action sets both the sound and the visuals, and feedback appears immediately.
+A click or key press calls `playString(i)`. It creates a Web Audio oscillator at that string's frequency with a 3-second fade, and marks the string as "ringing". Every frame, the drawing code checks which strings are ringing. For each one it wobbles the string, spins the peg, and sends out ripples. Each string's entry in the `STRINGS` list sets its note, colour, ripple speed and number of waves, and higher notes send out ripples more often. A ripple starts as a circle and gets wavier the further it travels. So the user's action sets both the sound and the visuals, and feedback appears immediately.
 
 ## How to run it
 
