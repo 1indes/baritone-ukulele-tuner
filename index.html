@@ -228,6 +228,8 @@ function wavyRing(rp, time) {
   }
   ctx.closePath();
 }
+let last = performance.now();
+function frame(now) {
   const dt = (now - last) / 1000;
   last = now;
   const g = geometry();
