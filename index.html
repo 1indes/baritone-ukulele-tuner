@@ -217,12 +217,9 @@ function spawnRipple(i, g) {
                  alpha: 0.9, phase: Math.random() * 6, r0: g.pegR });
 }
 
-// A ring that starts as a circle and gets wavier as it ages
+// A ring that starts as a perfect circle and gets wavier the further it travels
 function wavyRing(rp, time) {
-  const t = 1 - rp.alpha / 0.9;          // 0 when new, towards 1 as it ages
-  const s = Math.min(1, t * 3);          // reaches full wobble after about 0.4 seconds
-  const grow = s * s * (3 - 2 * s);      // eases in smoothly, so no sudden jump
-  const amp = Math.min(rp.r * 0.12, 16) * grow;
+  const amp = Math.min(rp.r * 0.12, 16) * rp.grow;
   ctx.beginPath();
   for (let a = 0; a <= Math.PI * 2 + 0.1; a += 0.04) {
     const rr = rp.r + amp * Math.sin(rp.lobes * a + rp.phase + time * 2);
@@ -231,9 +228,6 @@ function wavyRing(rp, time) {
   }
   ctx.closePath();
 }
-
-let last = performance.now();
-function frame(now) {
   const dt = (now - last) / 1000;
   last = now;
   const g = geometry();
@@ -255,7 +249,9 @@ function frame(now) {
   ripples = ripples.filter((rp) => rp.alpha > 0.01);
   for (const rp of ripples) {
     rp.r += rp.speed * dt;
-    rp.alpha *= Math.pow(0.35, dt);
+    rp.alpha *= Math.pow(0.5, dt);                // fades a little slower than before
+    const s = Math.min(1, (rp.r - rp.r0) / 150);  // 0 at the peg, 1 once it has travelled 150px
+    rp.grow = s * s;                              // stays almost circular at first, then waves up
     ctx.globalAlpha = rp.alpha;
     wavyRing(rp, now / 1000);
     ctx.strokeStyle = rp.color; ctx.lineWidth = rp.width; ctx.stroke();
