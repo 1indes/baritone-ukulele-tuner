@@ -4,7 +4,7 @@ A reference-tone tuner for baritone ukulele (D-G-B-E) with psychedelic visuals t
 
 **Live link:** https://1indes.github.io/baritone-ukulele-tuner/
 
-<img width="2861" height="1560" alt="image" src="https://github.com/user-attachments/assets/345abf91-b623-4e13-9c6c-86480dfac8c7" />
+<img width="2861" height="1560" alt="Screenshot of the tuner with ripples spreading from a tuning peg" src="https://github.com/user-attachments/assets/345abf91-b623-4e13-9c6c-86480dfac8c7" />
 
 ## The idea
 
