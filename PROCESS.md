@@ -40,7 +40,7 @@ I used Claude (Anthropic) to:
 
 **A suggestion I kept:** Claude suggested building a click-to-play version first and treating microphone listening as an optional extra. I kept this because I'm inexperienced and had about a week, and pitch detection would have been the hardest part to debug. It gave me a working project early, so I could spend the rest of the time on the design and on understanding my code.
 
-** Two suggestions I changed:** 
+**Two suggestions I changed:** 
 
 - Claude's first ripple speeds were calculated from each note's pitch, which made B and E too fast to watch. I replaced them with a speed that I set for each string. When Claude's first attempt left a much bigger gap between D and G than between the other strings, I pointed it out and asked for even steps, then adjusted E by eye until it felt right. I also changed the wave counts in the ripples, because with only 3 and 4 waves the D and G rings looked square.
 - Claude's first headstock design had the pegs in the wrong places for a real baritone ukulele. I noticed because I play one, so I asked for the layout to be changed so the pegs, their sides and the string spacing matched my instrument.

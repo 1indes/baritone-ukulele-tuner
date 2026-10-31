@@ -55,7 +55,7 @@ Tested in: Chrome on a MacBook
 
 - It plays reference tones only. It doesn't listen through the microphone, so it can't tell you how far off your string is.
 - The sound is a simple synthesised tone, not a recording of a real ukulele.
-- The layout is vertical, so it uses space differently on a laptop than on a phone. TODO: say whether you tested it on a phone.
+- The layout is vertical, so it uses space differently on a laptop than on a phone. 
 - The headstock shows two pegs per side, which is common on baritones but not on every model.
 
 ## Credits
