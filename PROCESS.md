@@ -12,15 +12,17 @@ First version: four plain circles (D, G, B, E) that played a note and sent out r
 
 Redesign: I wanted the page to look and feel more like an instrument, and to be more interesting visually. The second version had a 60s psychedelic theme and a headstock with tuning pegs and strings that vibrate. I then noticed the layout didn't match my real baritone, so the pegs, their sides and the string spacing were changed to fit a real instrument.
 
-My own tweaks, made by editing the code myself:
-- I added yellow to the background gradient because it felt too much like the Instagram logo with only pink and purple
-- I changed the title colors to match the string colors so it was more cohesive
-- I chose the Fredoka font to replace the one given by Claude for the status text and shortcuts because I wanted rounder, smoother shapes to match the psychedelic aesthetic.
-- I made it so the status text takes the colour of the string played to add an extra feeling of interaction.
-- I set a speed for each string so the ripples feel even
-- I changed the wave counts because D and G looked square
+My own tweaks. I decided what to change and made the edits in the code myself, and Claude suggested the code for some of them:
+- I added yellow to the background gradient because pink and purple alone felt too much like the Instagram logo.
+- I asked for the title colours to match the string colours so it felt more cohesive.
+- I wanted a rounder, smoother font for the status text and shortcuts to suit the psychedelic look. Claude suggested Fredoka and I used it.
+- I asked for the status text to take the colour of the string played, to add an extra feeling of interaction.
+- I asked for the ripple speeds to feel even, and set a speed for each string.
+- I changed the wave counts because D and G ripples looked square.
 
 **One thing that went wrong:** After I changed how the ripples wobble, the whole ukulele head disappeared, but the title, background and button stayed. That pattern was the clue: the page was fine, but the script that draws the head had stopped. My guess was that I'd left the old line next to the new one, so the same name was declared twice, which makes the whole script fail. I fixed it by replacing the entire ripple function in one go instead of editing individual lines, and the head came back. It taught me that when only the drawn part disappears, the problem is in the script.
+
+It happened again later when I changed the ripples to start circular. This time I opened the browser console, which said "Unexpected token '}'", and when I pasted my code to Claude it found that my replacement had accidentally deleted the lines that start the main drawing function. Putting them back fixed it.
 
 ## User trial
 
@@ -28,7 +30,7 @@ My own tweaks, made by editing the code myself:
 
 **What I observed:** He quickly clicked a peg, then tried the others one after another, reacting to the sound and the ripples with excitement ("Ooh!"). He also liked that the strings vibrated, and that he could pluck a string directly to make the sound and ripples, so both the pegs and the strings worked as things to touch. Then he noticed that when lots of ripples were moving, they seemed to disappear behind an invisible rectangle at the top of the page, level with the pegs and text. Afterwards I explained how a musician would use the tuner, because he hadn't realised it's a reference tuner that plays notes to tune against, not one that listens or records.
 
-**What I changed:** The invisible rectangle was the edge of the drawing area, which only covered the space below the title, so anything drawn past its top edge was cut off. I changed the canvas to cover the whole window, put the title and button on top of it, and made the head's position depend on where the title ends. The ripples now spread across the whole page. I didn't change how the tuner explains its purpose, but his misunderstanding is a limitation: a first-time user has to read the status line to learn that they should tune their own string to match the note.
+**What I changed:** The invisible rectangle was the edge of the drawing area, which only covered the space below the title, so anything drawn past its top edge was cut off. I changed the canvas to cover the whole window, put the title and button on top of it, and made the head's position depend on where the title ends. The ripples now spread across the whole page. I also reworded the starting message so it says what the tuner is for ("...then tune your ukulele to match"), because he hadn't realised it plays reference notes. It's still a limitation that a first-time user has to read the status line to learn this.
 
 ## AI tools
 
@@ -37,6 +39,7 @@ I used Claude (Anthropic) to:
 - write the first working version of `index.html`, and the redesigned headstock, pegs and strings
 - explain Git, GitHub Pages and VS Code steps
 - suggest edits to the code while I tuned the design, such as ripple speeds and wave counts
+- write the code for many of my tweaks, such as the ripple changes and the fonts, which I then pasted in, tested and adjusted myself
 
 **A suggestion I kept:** Claude suggested building a click-to-play version first and treating microphone listening as an optional extra. I kept this because I'm inexperienced and had about a week, and pitch detection would have been the hardest part to debug. It gave me a working project early, so I could spend the rest of the time on the design and on understanding my code.
 
