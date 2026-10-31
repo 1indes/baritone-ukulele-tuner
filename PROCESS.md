@@ -24,12 +24,11 @@ My own tweaks, made by editing the code myself:
 
 ## User trial
 
-**What I changed:** The tester triggered a lot of ripples at once and I noticed they seemed to disappear behind an invisible rectangle at the top, level with the pegs and text. The drawing area only covered the space below the title, so ripples were cut off at its edge. I changed the canvas to cover the whole window, put the title and button on top of it, and made the head's position depend on where the title ends. The ripples now spread across the whole page.
-**Who and how:** TODO (for example, a friend who doesn't play ukulele. I gave no instructions and watched. Which device?)
+**Who and how:** I asked my partner to try the tuner on his iPhone using the live link. He doesn't play ukulele or any other instrument. I gave no instructions and watched what he did.
 
-**What I observed:** TODO (what did they click first? Where did they hesitate? Did the sound and visuals make sense to them? Did they understand the pegs and strings were clickable?)
+**What I observed:** He quickly clicked a peg, then tried the others one after another, reacting to the sound and the ripples with excitement ("Ooh!"). He also liked that the strings vibrated, and that he could pluck a string directly to make the sound and ripples, so both the pegs and the strings worked as things to touch. Then he noticed that when lots of ripples were moving, they seemed to disappear behind an invisible rectangle at the top of the page, level with the pegs and text. Afterwards I explained how a musician would use the tuner, because he hadn't realised it's a reference tuner that plays notes to tune against, not one that listens or records.
 
-**What I changed, or why I kept the design:** TODO (one improvement based on what you saw, or why you left it as it was).
+**What I changed:** The invisible rectangle was the edge of the drawing area, which only covered the space below the title, so anything drawn past its top edge was cut off. I changed the canvas to cover the whole window, put the title and button on top of it, and made the head's position depend on where the title ends. The ripples now spread across the whole page. I didn't change how the tuner explains its purpose, but his misunderstanding is a limitation: a first-time user has to read the status line to learn that they should tune their own string to match the note.
 
 ## AI tools
 
