@@ -22,7 +22,7 @@ Baritone ukulele players who tune by ear and want a clear reference tone for eac
 
 What the visuals mean:
 - Each string has its own colour, and the status line takes the colour of the string you played.
-- The string wobbles and fades like a plucked string, and the tuning peg spins while the note rings.
+- You can click either a tuning peg or the string itself to play a note. Plucking a string makes it vibrate and fade like a real one, and the tuning peg spins while the note rings.
 - Ripples spread out from the peg. Higher notes make more waves in each ripple, and the ripples start as circles and become wavier as they grow.
 
 The notes are D3 (146.83 Hz), G3 (196.00 Hz), B3 (246.94 Hz) and E4 (329.63 Hz).
@@ -41,7 +41,7 @@ There are no dependencies and nothing to install. Either:
 
 The page loads two fonts from Google Fonts, so it needs an internet connection to look as intended. Offline, it falls back to Georgia.
 
-Tested in: Chrome on a MacBook
+Tested in: Chrome on a MacBook and Safari on an iPhone
 
 ## What happens when something goes wrong
 
@@ -55,7 +55,8 @@ Tested in: Chrome on a MacBook
 
 - It plays reference tones only. It doesn't listen through the microphone, so it can't tell you how far off your string is.
 - The sound is a simple synthesised tone, not a recording of a real ukulele.
-- The layout is vertical, so it uses space differently on a laptop than on a phone. 
+- The layout is vertical, so it uses space differently on a laptop than on a phone.
+- A first-time user may not realise it only plays reference notes to tune against, rather than listening to the instrument. The status line explains it briefly, but there is no longer explanation on the page.
 - The headstock shows two pegs per side, which is common on baritones but not on every model.
 
 ## Credits
